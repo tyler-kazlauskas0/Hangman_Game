@@ -8,6 +8,8 @@ The terminal client, automated bots, evaluation mode, scoring, and leaderboard
 described in [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md) are intentionally
 out of scope.
 
+**Play it:** <https://hangman-m6dk.onrender.com>
+
 ## Status
 
 | Part | Description | Status |
@@ -16,7 +18,7 @@ out of scope.
 | B | Flask server and REST API (`server.py`) | Done |
 | C | Browser client (`static/`) | Done |
 | D | Automated tests: engine, API, and browser | Done |
-| E | Cloud deployment on Render (`render.yaml`) | Ready to deploy |
+| E | Cloud deployment on Render (`render.yaml`) | Live |
 
 ## Requirements
 

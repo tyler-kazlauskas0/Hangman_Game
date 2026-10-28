@@ -4,6 +4,13 @@ The app is deployed to [Render](https://render.com) as a Python web service.
 `render.yaml` in the repository root describes the service, so Render can set
 everything up from the repository.
 
+**Live URL:** <https://hangman-m6dk.onrender.com>
+
+The live deployment passes every check in
+`scripts/check_deployment.py --browser` (HTTPS, web page, full games
+through the API at each difficulty, error responses, and a full game played
+in Chromium).
+
 ## Deploy on Render
 
 1. Sign in at <https://dashboard.render.com> with GitHub.
