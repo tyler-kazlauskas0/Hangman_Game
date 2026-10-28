@@ -16,6 +16,7 @@ out of scope.
 | B | Flask server and REST API (`server.py`) | Done |
 | C | Browser client (`static/`) | Done |
 | D | Automated tests: engine, API, and browser | Done |
+| E | Cloud deployment on Render (`render.yaml`) | Ready to deploy |
 
 ## Requirements
 
@@ -24,6 +25,11 @@ Python 3.10+ and Flask.
 ```bash
 pip install -r requirements.txt
 ```
+
+## Deployment
+
+See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) to deploy on Render and to
+check a deployed URL.
 
 ## Running the server
 
@@ -171,6 +177,7 @@ Each part is developed on its own branch off `main`, named
 | B | `feature/part-b-flask-rest-api` |
 | C | `feature/part-c-browser-client` |
 | D | `feature/part-d-testing` |
+| E | `feature/part-e-cloud-deployment` |
 
 ## Running the tests
 

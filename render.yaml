@@ -1,0 +1,17 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# In the Render dashboard choose New > Blueprint and select this repository.
+services:
+  - type: web
+    name: hangman
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    # One worker process: games live in memory, so every request must reach
+    # the same process. Threads let that process serve players concurrently.
+    startCommand: gunicorn server:app --workers 1 --threads 8 --bind 0.0.0.0:$PORT --access-logfile -
+    healthCheckPath: /healthz
+    # Redeploy on every push to main, once the GitHub test checks pass.
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7

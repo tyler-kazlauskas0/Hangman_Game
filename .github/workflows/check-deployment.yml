@@ -1,0 +1,34 @@
+name: Check deployment
+
+# Run from the Actions tab ("Run workflow") with the public URL of the
+# deployed app. Plays complete games through the API and in a real browser.
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Public HTTPS URL of the deployed app"
+        required: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Check deployed app
+        env:
+          APP_URL: ${{ inputs.url }}
+        run: python scripts/check_deployment.py "$APP_URL" --browser --screenshot deployed-game.png
+      - name: Upload screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployed-game-screenshot
+          path: deployed-game.png
+          if-no-files-found: ignore

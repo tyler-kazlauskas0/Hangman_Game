@@ -1,6 +1,7 @@
 import random
 import threading
 import unittest
+from pathlib import Path
 
 from game import HangmanGame
 from server import GameStore, create_app
@@ -246,6 +247,49 @@ class BrowserClientTests(ApiTestCase):
                 self.assertEqual(response.status_code, 200)
                 self.assertIn(content_type, response.content_type)
                 response.close()
+
+
+class ProductionTests(ApiTestCase):
+    def test_health_check(self):
+        response = self.client.get("/healthz")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {"status": "ok"})
+
+    def test_security_headers_on_page_and_api(self):
+        for path in ["/", "/api/games/missing"]:
+            with self.subTest(path=path):
+                response = self.client.get(path)
+                self.assertIn("default-src 'self'", response.headers["Content-Security-Policy"])
+                self.assertEqual(response.headers["X-Content-Type-Options"], "nosniff")
+                response.close()
+
+    def test_api_responses_are_not_cached(self):
+        game_id = self.client.post("/api/games", json={}).get_json()["game_id"]
+        for response in [
+            self.client.get(f"/api/games/{game_id}"),
+            self.client.post(f"/api/games/{game_id}/guess", json={"letter": "a"}),
+            self.client.get("/api/games/missing"),
+        ]:
+            self.assertEqual(response.headers["Cache-Control"], "no-store")
+
+
+class DeploymentConfigTests(unittest.TestCase):
+    """The start command must import the app and use a single worker."""
+
+    def test_render_and_procfile_use_one_gunicorn_worker(self):
+        root = Path(__file__).resolve().parent.parent
+        for name in ["render.yaml", "Procfile"]:
+            with self.subTest(file=name):
+                text = (root / name).read_text()
+                self.assertIn("gunicorn server:app", text)
+                self.assertIn("--workers 1", text)
+                self.assertIn("$PORT", text)
+        self.assertIn("healthCheckPath: /healthz", (root / "render.yaml").read_text())
+
+    def test_wsgi_entry_point(self):
+        import server
+
+        self.assertTrue(callable(server.app))
 
 
 class GameStoreTests(unittest.TestCase):
