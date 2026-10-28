@@ -10,6 +10,7 @@ import random
 from pathlib import Path
 
 DIFFICULTIES = ("easy", "medium", "hard")
+DEFAULT_DIFFICULTY = "medium"
 DEFAULT_WORDS_DIR = Path(__file__).resolve().parent / "words"
 
 
