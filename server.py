@@ -20,7 +20,7 @@ import uuid
 from collections import OrderedDict
 
 from flask import Flask, jsonify, request
-from werkzeug.exceptions import HTTPException
+from werkzeug.exceptions import BadRequest, HTTPException
 
 from game import (
     DuplicateGuessError,
@@ -88,9 +88,10 @@ def read_json_object(allowed_fields: set[str]) -> dict:
         return {}
     if not request.is_json:
         raise ApiError(415, "unsupported_media_type", "Request body must be JSON (Content-Type: application/json)")
-    body = request.get_json(silent=True)
-    if body is None:
-        raise ApiError(400, "malformed_json", "Request body is not valid JSON")
+    try:
+        body = request.get_json()
+    except BadRequest as exc:
+        raise ApiError(400, "malformed_json", "Request body is not valid JSON") from exc
     if not isinstance(body, dict):
         raise ApiError(400, "invalid_request", "Request body must be a JSON object")
     unknown = sorted(set(body) - allowed_fields)
