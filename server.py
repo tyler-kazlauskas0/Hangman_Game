@@ -5,6 +5,9 @@ Endpoints:
     GET  /api/games/<game_id>         current game state      -> 200
     POST /api/games/<game_id>/guess   guess one letter        -> 200
 
+The browser client (static/index.html, style.css, app.js) is served at ``/``
+and talks to the server only through these endpoints.
+
 The server is authoritative: games live only in server memory, and the
 hidden word is sent to clients only once a game has ended.
 """
@@ -102,6 +105,10 @@ def create_app(word_manager: WordManager | None = None, store: GameStore | None 
     word_manager = word_manager or WordManager()
     store = store if store is not None else GameStore()
     app.config["GAME_STORE"] = store
+
+    @app.get("/")
+    def index():
+        return app.send_static_file("index.html")
 
     def find_game(game_id: str) -> HangmanGame:
         game = store.get(game_id)

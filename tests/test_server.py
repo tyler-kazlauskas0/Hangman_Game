@@ -226,6 +226,28 @@ class RoutingTests(ApiTestCase):
         self.assert_error(self.client.get("/api/games/abc/guess"), 405, "method_not_allowed")
 
 
+class BrowserClientTests(ApiTestCase):
+    def test_index_page(self):
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/html", response.content_type)
+        html = response.get_data(as_text=True)
+        self.assertIn("/static/app.js", html)
+        self.assertIn("/static/style.css", html)
+        response.close()
+
+    def test_static_assets(self):
+        for path, content_type in [
+            ("/static/app.js", "javascript"),
+            ("/static/style.css", "text/css"),
+        ]:
+            with self.subTest(path=path):
+                response = self.client.get(path)
+                self.assertEqual(response.status_code, 200)
+                self.assertIn(content_type, response.content_type)
+                response.close()
+
+
 class GameStoreTests(unittest.TestCase):
     def test_oldest_games_evicted_past_limit(self):
         store = GameStore(max_games=3)
