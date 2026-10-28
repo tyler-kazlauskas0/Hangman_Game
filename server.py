@@ -6,7 +6,11 @@ Endpoints:
     POST /api/games/<game_id>/guess   guess one letter        -> 200
 
 The browser client (static/index.html, style.css, app.js) is served at ``/``
-and talks to the server only through these endpoints.
+and talks to the server only through these endpoints. ``GET /healthz`` is a
+health check for the hosting platform.
+
+In production the app runs under gunicorn with a single worker process,
+because games are stored in that process's memory (see render.yaml).
 
 The server is authoritative: games live only in server memory, and the
 hidden word is sent to clients only once a game has ended.
@@ -110,6 +114,25 @@ def create_app(word_manager: WordManager | None = None, store: GameStore | None 
     @app.get("/")
     def index():
         return app.send_static_file("index.html")
+
+    @app.get("/healthz")
+    def health():
+        """Used by the hosting platform to check the app is up."""
+        return jsonify({"status": "ok"})
+
+    @app.after_request
+    def add_headers(response):
+        # The page loads only its own files, so lock everything else out.
+        response.headers.setdefault(
+            "Content-Security-Policy",
+            "default-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+        )
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("Referrer-Policy", "no-referrer")
+        if request.path.startswith("/api/"):
+            # Game state changes with every guess; never serve it from a cache.
+            response.headers["Cache-Control"] = "no-store"
+        return response
 
     def find_game(game_id: str) -> HangmanGame:
         game = store.get(game_id)
