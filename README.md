@@ -14,7 +14,7 @@ out of scope.
 | ---- | ----------- | ------ |
 | A | Game engine (`game.py`, `words.py`, `words/`) | Done |
 | B | Flask server and REST API (`server.py`) | Done |
-| C | Browser client | Not started |
+| C | Browser client (`static/`) | Done |
 
 ## Requirements
 
@@ -30,13 +30,15 @@ pip install -r requirements.txt
 python3 server.py
 ```
 
-The server listens on `http://127.0.0.1:5000` by default. Set `HOST`, `PORT`,
+Then open `http://127.0.0.1:5000` in a browser to play. The server listens
+on `http://127.0.0.1:5000` by default. Set `HOST`, `PORT`,
 or `FLASK_DEBUG=1` to change that.
 
 ## Project layout
 
 ```
-server.py        Flask app and REST API
+server.py        Flask app and REST API; serves the browser client at /
+static/          Browser client: index.html, style.css, app.js
 game.py          HangmanGame engine (no web/UI dependencies)
 words.py         WordManager: loads word lists, picks random words
 words/           easy.txt, medium.txt, hard.txt (one word per line, # comments)
@@ -72,6 +74,21 @@ Rules:
 
 Word lists ignore blank lines and `#` comments, lowercase every word, drop
 duplicates, and refuse to load if any entry isn't purely alphabetic.
+
+## Browser client
+
+- Pick Easy, Medium, or Hard and press **New game**.
+- Guess by clicking a letter or typing it. Guessed keys turn green (hit) or
+  red (miss) and are disabled.
+- The page shows the word pattern, guessed letters, misses, incorrect guesses
+  left, and an SVG gallows that gains a body part with every miss.
+- When the game ends, a win or loss message shows the word. Press **Enter**
+  or **New game** to play again without reloading.
+- Reloading the tab resumes the current game.
+
+The client has no game rules of its own. It sends each guess to
+`POST /api/games/{id}/guess` with `fetch()` and redraws from the server's
+response, so it never holds the hidden word while a game is in progress.
 
 ## REST API
 

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hangman</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <main class="app">
+    <header class="app-header">
+      <h1>Hangman</h1>
+      <form id="new-game-form" class="controls">
+        <label for="difficulty">Difficulty</label>
+        <select id="difficulty" name="difficulty">
+          <option value="easy">Easy</option>
+          <option value="medium" selected>Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+        <button type="submit" id="new-game">New game</button>
+      </form>
+    </header>
+
+    <section class="board">
+      <svg id="gallows" class="gallows" viewBox="0 0 200 240" role="img"
+           aria-labelledby="gallows-title">
+        <title id="gallows-title">Hangman drawing: 0 of 6 parts</title>
+        <g class="frame">
+          <line x1="20" y1="225" x2="140" y2="225"/>
+          <line x1="50" y1="225" x2="50" y2="20"/>
+          <line x1="50" y1="20" x2="130" y2="20"/>
+          <line x1="130" y1="20" x2="130" y2="45"/>
+        </g>
+        <g class="figure">
+          <circle class="part" cx="130" cy="65" r="20"/>
+          <line class="part" x1="130" y1="85" x2="130" y2="150"/>
+          <line class="part" x1="130" y1="100" x2="105" y2="128"/>
+          <line class="part" x1="130" y1="100" x2="155" y2="128"/>
+          <line class="part" x1="130" y1="150" x2="108" y2="190"/>
+          <line class="part" x1="130" y1="150" x2="152" y2="190"/>
+        </g>
+      </svg>
+
+      <div class="state">
+        <p id="pattern" class="pattern" aria-label="Word pattern"></p>
+        <p class="remaining">
+          Incorrect guesses left: <strong id="remaining">–</strong>
+        </p>
+        <dl class="guesses">
+          <dt>Guessed</dt>
+          <dd id="guessed" class="letters">–</dd>
+          <dt>Misses</dt>
+          <dd id="incorrect" class="letters">–</dd>
+        </dl>
+        <p id="message" class="message" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section id="keyboard" class="keyboard" aria-label="Letters"></section>
+    <p class="hint">Click a letter or type it on your keyboard.</p>
+  </main>
+</body>
+</html>
