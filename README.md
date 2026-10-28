@@ -15,6 +15,7 @@ out of scope.
 | A | Game engine (`game.py`, `words.py`, `words/`) | Done |
 | B | Flask server and REST API (`server.py`) | Done |
 | C | Browser client (`static/`) | Done |
+| D | Automated tests: engine, API, and browser | Done |
 
 ## Requirements
 
@@ -42,7 +43,7 @@ static/          Browser client: index.html, style.css, app.js
 game.py          HangmanGame engine (no web/UI dependencies)
 words.py         WordManager: loads word lists, picks random words
 words/           easy.txt, medium.txt, hard.txt (one word per line, # comments)
-tests/           unittest suites
+tests/           unittest suites, including Playwright browser tests
 docs/            Original specification and TODO (reference material)
 ```
 
@@ -169,9 +170,16 @@ Each part is developed on its own branch off `main`, named
 | A | merged to `main` before this scheme was adopted |
 | B | `feature/part-b-flask-rest-api` |
 | C | `feature/part-c-browser-client` |
+| D | `feature/part-d-testing` |
 
 ## Running the tests
 
 ```bash
-python3 -m unittest discover -s tests -t .
+pip install -r requirements-dev.txt
+python -m playwright install chromium
+python -m unittest discover -s tests -t . -v
 ```
+
+The browser tests are skipped if Playwright isn't installed. See
+[`docs/TESTING.md`](docs/TESTING.md) for what each suite covers, coverage
+commands, and a manual browser checklist.

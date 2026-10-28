@@ -46,6 +46,11 @@ class NewGameTests(unittest.TestCase):
         with self.assertRaises(InvalidDifficultyError):
             HangmanGame("apple", difficulty="impossible")
 
+    def test_rejects_invalid_max_incorrect(self):
+        for bad in [0, -1]:
+            with self.subTest(max_incorrect=bad), self.assertRaises(ValueError):
+                HangmanGame("apple", max_incorrect=bad)
+
     def test_new_picks_word_from_difficulty_list(self):
         manager = WordManager.from_lists(
             {"easy": ["cat"], "medium": ["garden"], "hard": ["rhythm"]},
@@ -211,6 +216,80 @@ class SerializationTests(unittest.TestCase):
         game.to_dict()["guessed_letters"].append("z")
         game.guessed_letters.append("z")
         self.assertEqual(game.guessed_letters, ["a"])
+
+
+class DifficultyTests(unittest.TestCase):
+    def test_new_game_at_each_difficulty_uses_that_list(self):
+        manager = WordManager(rng=random.Random(7))
+        for difficulty in ("easy", "medium", "hard"):
+            with self.subTest(difficulty=difficulty):
+                words = set(manager.words(difficulty))
+                for _ in range(20):
+                    game = HangmanGame.new(difficulty, manager)
+                    self.assertEqual(game.difficulty, difficulty)
+                    self.assertEqual(game.status, PLAYING)
+                    self.assertEqual(game.remaining_guesses, MAX_INCORRECT_GUESSES)
+                    lose(game)
+                    self.assertIn(game.answer, words)
+
+    def test_random_selection_varies(self):
+        manager = WordManager(rng=random.Random(3))
+        seen = set()
+        for _ in range(40):
+            game = HangmanGame.new("easy", manager)
+            lose(game)
+            seen.add(game.answer)
+        self.assertGreater(len(seen), 5)
+
+
+class NewGameAfterFinishTests(unittest.TestCase):
+    def test_new_game_starts_fresh_after_win_and_loss(self):
+        manager = WordManager.from_lists({"easy": ["cat"], "medium": ["apple"], "hard": ["rhythm"]})
+        won = HangmanGame.new("easy", manager)
+        for letter in "cat":
+            won.guess(letter)
+        lost = HangmanGame.new("medium", manager)
+        lose(lost)
+
+        fresh = HangmanGame.new("easy", manager)
+        self.assertEqual(fresh.status, PLAYING)
+        self.assertEqual(fresh.guessed_letters, [])
+        self.assertEqual(fresh.remaining_guesses, MAX_INCORRECT_GUESSES)
+        self.assertEqual(fresh.pattern, "_ _ _")
+        self.assertTrue(fresh.guess("c"))
+        # Finished games are unaffected by the new one.
+        self.assertEqual(won.status, WON)
+        self.assertEqual(lost.status, LOST)
+
+
+class SecrecyTests(unittest.TestCase):
+    def test_word_hidden_at_every_step_until_the_end(self):
+        for word, guesses, final in [
+            ("zebra", "qzebxr" + "a", WON),
+            ("zebra", "zqxjvkw", LOST),
+        ]:
+            with self.subTest(word=word, final=final):
+                game = HangmanGame(word)
+                for letter in guesses:
+                    state = game.to_dict()
+                    self.assertNotIn("word", state)
+                    self.assertIsNone(game.answer)
+                    self.assertNotIn(word, repr(state))
+                    self.assertNotIn(word, repr(game))
+                    if game.is_over:
+                        break
+                    game.guess(letter)
+                self.assertEqual(game.status, final)
+                self.assertEqual(game.to_dict()["word"], word)
+
+    def test_rejected_guess_errors_do_not_mention_word(self):
+        game = HangmanGame("zebra")
+        game.guess("z")
+        for bad in ["z", "1", ""]:
+            try:
+                game.guess(bad)
+            except Exception as exc:  # noqa: BLE001 - checking every rejection
+                self.assertNotIn("zebra", str(exc))
 
 
 if __name__ == "__main__":
